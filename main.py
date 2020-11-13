@@ -32,7 +32,7 @@ async def vote(ctx, question, *options):
 	}
 	for optionInd in range(len(options)):
 		embedData["fields"].append({
-			"name": f"Option {letters[optionInd]}: {options[optionInd]}",
+			"name": f"{letters[optionInd]}: {options[optionInd]}",
 			"value":"`<                    >` 0% - 0 votes"
 			})
 	embed = discord.Embed().from_dict(embedData)
