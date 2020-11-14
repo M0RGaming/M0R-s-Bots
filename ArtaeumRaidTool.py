@@ -1,0 +1,278 @@
+import discord
+import asyncio
+from discord.ext import commands
+import re
+import os
+
+bot = commands.Bot(command_prefix='/')
+
+token = os.environ["Token2"]
+
+
+emotes = {
+	'dps': ['<:magDPS:776723327955370026>','<:stamDPS:776723328122748928>'],
+	'magDPS': ['<:magsorc:755916823261872199>','<:magplar:755916814898430042>','<:magdk:755916821227503636>','<:magden:755916806408896634>','<:magcro:755916820455882954>','<:magblade:755916820623654912>'],
+	'stamDPS': ['<:stamsorc:755916822406103050>','<:stamplar:755916818979356712>','<:stamdk:755916821210595488>','<:stamden:755916810527834202>','<:stamcro:755916821223178260>','<:stamblade:755916818987614218>'],
+	'heal': [],
+	'tank': []
+}
+
+MessageVersion = '1.1'
+
+
+
+@bot.event
+async def on_ready():
+	print('Logged in as {0.user}'.format(bot))
+
+
+
+
+
+
+@bot.command(name='create')
+async def create(ctx, Title, Date, Time, Description):
+
+	messageTxt = "Click your role and class below to sign up."
+	embedData = {
+		"title": f"{Title}",
+		"description": f"{Description}",
+		"fields": [
+			{"name": "Date", "value": f"{Date}", "inline":True},
+			{"name": "Time", "value": f"{Time}", "inline":True},
+			{"name": "\u200B", "value": "――――――――――――――――――――", "inline":False},
+			{"name": "DPS", "value": "\u200B", "inline":True},
+			{"name": "Healers", "value": "\u200B", "inline":True},
+			{"name": "Tanks", "value": "\u200B", "inline":True},
+		],
+		"footer": {
+			"text": f"Message Type: Raid - V{MessageVersion}"
+		},
+		"color": 0x00FFFF
+	}
+	
+	embed = discord.Embed().from_dict(embedData)
+	if len(embed) > 6000:
+		await ctx.send(f"<@{ctx.author.id}> The message you requested was too long. Give less options.")
+	else:
+		message = await ctx.send(content=messageTxt,embed=embed)
+		#await message.add_reaction('<:magDPS:776723327955370026>')
+		#await message.add_reaction('<:stamDPS:776723328122748928>')
+		for x in emotes['magDPS']+emotes['stamDPS']:
+			await message.add_reaction(x)
+		await message.add_reaction('<:heal:738578155970887770>')
+		await message.add_reaction('<:tank:738578125171982448>')
+		await message.add_reaction('⛔')
+
+@bot.command(name='edit')
+async def edit(ctx, messageID, name, value):
+	message = await ctx.channel.fetch_message(messageID)
+	embed = message.embeds[0]
+	await ctx.message.delete()
+	if name == 'title':
+		embed.title = value
+	elif name == 'description':
+		embed.description = value
+	elif name == 'time':
+		embed.set_field_at(1,name=embed.fields[1].name,value=value,inline=embed.fields[1].inline)
+	elif name == 'date':
+		embed.set_field_at(0,name=embed.fields[0].name,value=value,inline=embed.fields[0].inline)
+
+	await message.edit(embed=embed)
+
+
+@bot.event
+async def on_command_error(ctx, exception):
+	if str(ctx.command) == 'create':
+		if not len(ctx.args) == 5:
+			embedData = {
+				"title": "The /create command failed due to not enough parameters.",
+				"description": "Please re-send the command with the correct parameters.\n\n/create [Title] [Date] [Time] [Description]",
+				"footer": {
+					"text": "This message will self destruct after 30 seconds."
+				},
+				"color": 0xFF0000
+			}
+			embed = discord.Embed().from_dict(embedData)
+			message = await ctx.send(embed=embed,delete_after=30)
+			return
+	else:
+		embedData = {
+			"title": f"The /{ctx.command} command failed.",
+			"description": f"{exception}",
+			"footer": {
+				"text": "This message will self destruct after 30 seconds."
+			},
+			"color": 0xFF0000
+		}
+		embed = discord.Embed().from_dict(embedData)
+		message = await ctx.send(embed=embed,delete_after=30)
+		return
+		#print(f"Error in command {ctx.command}, {exception}")
+	raise exception
+
+@bot.event
+async def on_raw_reaction_add(payload):
+	await update_numbers(payload)
+'''	
+@bot.event
+async def on_raw_reaction_remove(payload):
+	await update_numbers(payload)
+'''
+
+async def update_numbers(payload):
+	#channel = bot.get_channel(payload.channel_id)
+	#message = await channel.fetch_message(payload.message_id)
+	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+
+
+	#print(payload.emoji)
+
+	### TEST TO SEE IF WE SHOULD RETURN ###
+
+	if (message.embeds == []) or (payload.user_id == bot.user.id):
+		return
+	if message.embeds[0].footer.text == f"Message Type: Raid - V{MessageVersion}":
+		embed = message.embeds[0]
+		#user = await bot.fetch_user(payload.user_id)
+		user = discord.Object(payload.user_id)
+		emote = str(payload.emoji)
+
+		
+
+		dps = getVals(embed,3)
+		heal = getVals(embed,4)
+		tank = getVals(embed,5)
+
+		# TODO: CHANGE THIS WHEN CLASS SYSTEMS ARE ADDED
+		#if emote in emotes['dps']:
+		if (emote in emotes['stamDPS']) or (emote in emotes['magDPS']):
+			# if they clicked DPS
+			
+			ind = find(str(user.id),dps)
+			heal = findAndRemove(str(user.id), heal)
+			tank = findAndRemove(str(user.id), tank)
+
+
+			if ind == -1:
+				dps.append([emote,str(user.id)])
+			else:
+				dps[ind][0] = emote
+
+
+			dpsOut = parseVals(dps)
+			healOut = parseVals(heal)
+			tankOut = parseVals(tank)
+
+			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
+			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
+			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
+
+
+		elif emote == '<:heal:738578155970887770>':
+			# if they clicked Heal
+			
+			ind = find(str(user.id),heal)
+			dps = findAndRemove(str(user.id), dps)
+			tank = findAndRemove(str(user.id), tank)
+
+			
+			if ind == -1:
+				heal.append([emote,str(user.id)])
+			else:
+				heal[ind][0] = emote
+
+
+			dpsOut = parseVals(dps)
+			healOut = parseVals(heal)
+			tankOut = parseVals(tank)
+
+			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
+			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
+			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
+
+		elif emote == '<:tank:738578125171982448>':
+			# if they clicked Tank
+			
+			ind = find(str(user.id),tank)
+			dps = findAndRemove(str(user.id), dps)
+			heal = findAndRemove(str(user.id), heal)
+
+			
+			if ind == -1:
+				tank.append([emote,str(user.id)])
+			else:
+				tank[ind][0] = emote
+
+
+			dpsOut = parseVals(dps)
+			healOut = parseVals(heal)
+			tankOut = parseVals(tank)
+
+			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
+			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
+			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
+
+
+		elif str(payload.emoji) == '⛔':
+
+			dps = findAndRemove(str(user.id), dps)
+			heal = findAndRemove(str(user.id), heal)
+			tank = findAndRemove(str(user.id), tank)
+
+			dpsOut = parseVals(dps)
+			healOut = parseVals(heal)
+			tankOut = parseVals(tank)
+
+			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
+			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
+			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
+		
+
+
+
+
+
+		await message.edit(embed=embed) # after everything is updated, push the update to the message
+		await message.remove_reaction(payload.emoji, user) 
+
+
+def getVals(embed,field):
+	newValue = '\u200b'
+	currentVal = embed.fields[field].value.replace('\u200b','')
+	cleanedUpVal = re.sub(r'<(.*?)> <@(.*?)>',r'<\1> \2',currentVal)
+	valList = cleanedUpVal.split("\n")
+
+	# if list is empty, return [], otherwise return the double split list.
+	return [] if valList == [''] else [i.split(' ') for i in valList]
+
+	#return 
+
+def parseVals(vals):
+	outlist = []
+	for x in vals:
+		outlist.append(f'{x[0]} <@{x[1]}>')
+	if outlist == []:
+		return '\u200b'
+	else:
+		return '\n'.join(outlist)
+
+
+def findAndRemove(val, li):
+	for x in li:
+		if x[1] == val:
+			li.remove(x)
+			break
+	return li
+
+def find(val, li):
+	ind = -1
+	for x in li:
+		if x[1] == val:
+			ind = li.index(x)
+			break
+	return ind
+
+#bot.run('')
+bot.run(token)
