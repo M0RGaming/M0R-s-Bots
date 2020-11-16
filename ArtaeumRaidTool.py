@@ -10,9 +10,9 @@ token = os.environ["Token2"]
 
 
 emotes = {
-	'dps': ['<:magDPS:776723327955370026>','<:stamDPS:776723328122748928>'],
-	'magDPS': ['<:magsorc:755916823261872199>','<:magplar:755916814898430042>','<:magdk:755916821227503636>','<:magden:755916806408896634>','<:magcro:755916820455882954>','<:magblade:755916820623654912>','<:magDPS:776723327955370026>'],
-	'stamDPS': ['<:stamsorc:755916822406103050>','<:stamplar:755916818979356712>','<:stamdk:755916821210595488>','<:stamden:755916810527834202>','<:stamcro:755916821223178260>','<:stamblade:755916818987614218>','<:stamDPS:776723328122748928>'],
+	'dps': ['<:magDPS:777982060320391219>','<:stamDPS:777982060622905375>'],
+	'magDPS': ['<:magsorc:755916823261872199>','<:magplar:755916814898430042>','<:magdk:755916821227503636>','<:magden:755916806408896634>','<:magcro:755916820455882954>','<:magblade:755916820623654912>','<:magDPS:777982060320391219>'],
+	'stamDPS': ['<:stamsorc:755916822406103050>','<:stamplar:755916818979356712>','<:stamdk:755916821210595488>','<:stamden:755916810527834202>','<:stamcro:755916821223178260>','<:stamblade:755916818987614218>','<:stamDPS:777982060622905375>'],
 	'heal': ['<:healsorc:777960536343838760>','<:healplar:777960536159420487>','<:healdk:777960536511217664>','<:healden:777960536335450144>','<:healcro:777960536276467713>','<:healblade:777960536210014239>'],
 	'tank': ['<:tanksorc:777960536766808165>','<:tankplar:777960536624201728>','<:tankdk:777960536632983592>','<:tankden:777960536603754546>','<:tankcro:777960536725520454>','<:tankblade:777960536620924949>'],
 	'classes': ['<:sorc:776723019652792320>','<:templar:776723019652530186>','<:dk:776723019489083402>','<:warden:776723019422367744>','<:necro:776723019585552405>','<:nb:776723019283431456>']
@@ -34,7 +34,7 @@ async def on_ready():
 @bot.command(name='create')
 async def create(ctx, Title, Date, Time, Description):
 
-	messageTxt = "Click your role and class below to sign up."
+	messageTxt = "To sign up, click your role followed by your class below the message.\n<:stamDPS:777982060622905375> is Stamina DPS, <:magDPS:777982060320391219> is Magicka DPS, <:heal:777982060433375293> is Healer, and <:tank:777982060647415818> is Tank."
 	embedData = {
 		"title": f"{Title}",
 		"description": f"{Description}",
@@ -57,14 +57,14 @@ async def create(ctx, Title, Date, Time, Description):
 		await ctx.send(f"<@{ctx.author.id}> The message you requested was too long. Give less options.")
 	else:
 		message = await ctx.send(content=messageTxt,embed=embed)
-		await message.add_reaction('<:magDPS:776723327955370026>')
-		await message.add_reaction('<:stamDPS:776723328122748928>')
+		await message.add_reaction('<:magDPS:777982060320391219>')
+		await message.add_reaction('<:stamDPS:777982060622905375>')
 		'''
 		for x in emotes['magDPS']+emotes['stamDPS']:
 			await message.add_reaction(x)
 		'''
-		await message.add_reaction('<:heal:738578155970887770>')
-		await message.add_reaction('<:tank:738578125171982448>')
+		await message.add_reaction('<:heal:777982060433375293>')
+		await message.add_reaction('<:tank:777982060647415818>')
 		for x in emotes['classes']:
 			await message.add_reaction(x)
 		await message.add_reaction('⛔')
@@ -175,7 +175,7 @@ async def update_numbers(payload):
 			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
 
 
-		elif emote == '<:heal:738578155970887770>':
+		elif emote == '<:heal:777982060433375293>':
 			# if they clicked Heal
 			
 			ind = find(str(user.id),heal)
@@ -197,7 +197,7 @@ async def update_numbers(payload):
 			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
 			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
 
-		elif emote == '<:tank:738578125171982448>':
+		elif emote == '<:tank:777982060647415818>':
 			# if they clicked Tank
 			
 			ind = find(str(user.id),tank)
