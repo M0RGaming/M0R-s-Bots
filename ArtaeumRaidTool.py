@@ -164,15 +164,6 @@ async def update_numbers(payload):
 				dps[ind][0] = emote
 
 
-			dpsOut = parseVals(dps)
-			healOut = parseVals(heal)
-			tankOut = parseVals(tank)
-
-			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
-			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
-			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
-
-
 		elif emote == '<:heal:777982060433375293>':
 			# if they clicked Heal
 			
@@ -187,14 +178,6 @@ async def update_numbers(payload):
 				heal[ind][0] = emote
 
 
-			dpsOut = parseVals(dps)
-			healOut = parseVals(heal)
-			tankOut = parseVals(tank)
-
-			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
-			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
-			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
-
 		elif emote == '<:tank:777982060647415818>':
 			# if they clicked Tank
 			
@@ -208,14 +191,6 @@ async def update_numbers(payload):
 			else:
 				tank[ind][0] = emote
 
-
-			dpsOut = parseVals(dps)
-			healOut = parseVals(heal)
-			tankOut = parseVals(tank)
-
-			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
-			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
-			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
 
 		elif emote in emotes['classes']:
 			# if they clicked any of the classes
@@ -248,18 +223,6 @@ async def update_numbers(payload):
 					dps[ind][0] = emotes['stamDPS'][classind]
 
 
-			dpsOut = parseVals(dps)
-			healOut = parseVals(heal)
-			tankOut = parseVals(tank)
-
-			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
-			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
-			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
-
-
-
-
-
 
 		elif str(payload.emoji) == '⛔':
 
@@ -267,15 +230,18 @@ async def update_numbers(payload):
 			heal = findAndRemove(str(user.id), heal)
 			tank = findAndRemove(str(user.id), tank)
 
-			dpsOut = parseVals(dps)
-			healOut = parseVals(heal)
-			tankOut = parseVals(tank)
+		else:
+			await message.remove_reaction(payload.emoji, user)
+			return
 
-			embed.set_field_at(3,name=embed.fields[3].name,value=dpsOut,inline=embed.fields[3].inline)
-			embed.set_field_at(4,name=embed.fields[4].name,value=healOut,inline=embed.fields[4].inline)
-			embed.set_field_at(5,name=embed.fields[5].name,value=tankOut,inline=embed.fields[5].inline)
 		
+		dpsOut = parseVals(dps)
+		healOut = parseVals(heal)
+		tankOut = parseVals(tank)
 
+		embed.set_field_at(3,name=f"DPS ({len(dps)})",value=dpsOut,inline=embed.fields[3].inline)
+		embed.set_field_at(4,name=f"Healers ({len(heal)})",value=healOut,inline=embed.fields[4].inline)
+		embed.set_field_at(5,name=f"Tanks ({len(tank)})",value=tankOut,inline=embed.fields[5].inline)
 
 
 
