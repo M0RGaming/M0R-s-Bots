@@ -27,10 +27,6 @@ async def on_ready():
 	print('Logged in as {0.user}'.format(bot))
 
 
-
-
-
-
 @bot.command(name='create')
 async def create(ctx, Title, Date, Time, Description):
 
@@ -41,7 +37,7 @@ async def create(ctx, Title, Date, Time, Description):
 		"fields": [
 			{"name": "Date", "value": f"{Date}", "inline":True},
 			{"name": "Time", "value": f"{Time}", "inline":True},
-			{"name": "\u200B", "value": "――――――――――――――――――――", "inline":False},
+			{"name": "\u200B", "value": "\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_", "inline":False},
 			{"name": "DPS", "value": "\u200B", "inline":True},
 			{"name": "Healers", "value": "\u200B", "inline":True},
 			{"name": "Tanks", "value": "\u200B", "inline":True},
@@ -57,6 +53,8 @@ async def create(ctx, Title, Date, Time, Description):
 		await ctx.send(f"<@{ctx.author.id}> The message you requested was too long. Give less options.")
 	else:
 		message = await ctx.send(content=messageTxt,embed=embed)
+		embed.set_footer(text=f"Message Type: Raid - V{MessageVersion}\nEvent ID: {message.id}")
+		await message.edit(embed=embed)
 		await message.add_reaction('<:magDPS:777982060320391219>')
 		await message.add_reaction('<:stamDPS:777982060622905375>')
 		'''
@@ -138,7 +136,7 @@ async def update_numbers(payload):
 
 	if (message.embeds == []) or (payload.user_id == bot.user.id):
 		return
-	if message.embeds[0].footer.text == f"Message Type: Raid - V{MessageVersion}":
+	if f"Message Type: Raid - V{MessageVersion}" in message.embeds[0].footer.text:
 		embed = message.embeds[0]
 		#user = await bot.fetch_user(payload.user_id)
 		user = discord.Object(payload.user_id)
