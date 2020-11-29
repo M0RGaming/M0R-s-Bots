@@ -18,7 +18,7 @@ emotes = {
 	'classes': ['<:sorc:776723019652792320>','<:templar:776723019652530186>','<:dk:776723019489083402>','<:warden:776723019422367744>','<:necro:776723019585552405>','<:nb:776723019283431456>']
 }
 
-MessageVersion = '2.0'
+MessageVersion = '3.0'
 
 
 
@@ -30,7 +30,7 @@ async def on_ready():
 @bot.command(name='create')
 async def create(ctx, Title, Date, Time, Description):
 
-	messageTxt = "To sign up, click your role followed by your class below the message.\n<:stamDPS:777982060622905375> is Stamina DPS, <:magDPS:777982060320391219> is Magicka DPS, <:heal:777982060433375293> is Healer, and <:tank:777982060647415818> is Tank."
+	messageTxt = "To sign up, click your role followed by your class below the message.\n\n<:stamDPS:777982060622905375> is Stamina DPS, <:magDPS:777982060320391219> is Magicka DPS, <:heal:777982060433375293> is Healer, and <:tank:777982060647415818> is Tank.\n❓is for if you don't know if you can make it, and⌛is for if the group is filled.\n⛔is to be removed from the signups."
 	embedData = {
 		"title": f"{Title}",
 		"description": f"{Description}",
@@ -41,6 +41,9 @@ async def create(ctx, Title, Date, Time, Description):
 			{"name": "DPS", "value": "\u200B", "inline":True},
 			{"name": "Healers", "value": "\u200B", "inline":True},
 			{"name": "Tanks", "value": "\u200B", "inline":True},
+			{"name": "\u200B", "value": "\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_", "inline":False},
+			{"name": "Maybe", "value": "\u200B", "inline":True},
+			{"name": "Wait List", "value": "\u200B", "inline":True},
 		],
 		"footer": {
 			"text": f"Message Type: Raid - V{MessageVersion}"
@@ -65,6 +68,8 @@ async def create(ctx, Title, Date, Time, Description):
 		await message.add_reaction('<:tank:777982060647415818>')
 		for x in emotes['classes']:
 			await message.add_reaction(x)
+		await message.add_reaction('❓')
+		await message.add_reaction('⌛')
 		await message.add_reaction('⛔')
 
 @bot.command(name='edit')
@@ -147,6 +152,8 @@ async def update_numbers(payload):
 		dps = getVals(embed,3)
 		heal = getVals(embed,4)
 		tank = getVals(embed,5)
+		maybe = getVals(embed,7)
+		waitList = getVals(embed,8)
 
 		# TODO: CHANGE THIS WHEN CLASS SYSTEMS ARE ADDED
 		if emote in emotes['dps']:
@@ -156,6 +163,8 @@ async def update_numbers(payload):
 			ind = find(str(user.id),dps)
 			heal = findAndRemove(str(user.id), heal)
 			tank = findAndRemove(str(user.id), tank)
+			maybe = findAndRemove(str(user.id), maybe)
+			waitList = findAndRemove(str(user.id), waitList)
 
 
 			if ind == -1:
@@ -170,6 +179,8 @@ async def update_numbers(payload):
 			ind = find(str(user.id),heal)
 			dps = findAndRemove(str(user.id), dps)
 			tank = findAndRemove(str(user.id), tank)
+			maybe = findAndRemove(str(user.id), maybe)
+			waitList = findAndRemove(str(user.id), waitList)
 
 			
 			if ind == -1:
@@ -184,6 +195,8 @@ async def update_numbers(payload):
 			ind = find(str(user.id),tank)
 			dps = findAndRemove(str(user.id), dps)
 			heal = findAndRemove(str(user.id), heal)
+			maybe = findAndRemove(str(user.id), maybe)
+			waitList = findAndRemove(str(user.id), waitList)
 
 			
 			if ind == -1:
@@ -222,26 +235,57 @@ async def update_numbers(payload):
 				elif dps[ind][0] in emotes['stamDPS']:
 					dps[ind][0] = emotes['stamDPS'][classind]
 
+		elif str(payload.emoji) == '❓':
 
+			ind = find(str(user.id),maybe)
+
+			dps = findAndRemove(str(user.id), dps)
+			heal = findAndRemove(str(user.id), heal)
+			tank = findAndRemove(str(user.id), tank)
+			waitList = findAndRemove(str(user.id), waitList)
+
+			if ind == -1:
+				maybe.append([emote,str(user.id)])
+			else:
+				maybe[ind][0] = emote
+
+		elif str(payload.emoji) == '⌛':
+
+			ind = find(str(user.id),waitList)
+
+			dps = findAndRemove(str(user.id), dps)
+			heal = findAndRemove(str(user.id), heal)
+			tank = findAndRemove(str(user.id), tank)
+			maybe = findAndRemove(str(user.id), maybe)
+
+			if ind == -1:
+				waitList.append([emote,str(user.id)])
+			else:
+				waitList[ind][0] = emote
 
 		elif str(payload.emoji) == '⛔':
 
 			dps = findAndRemove(str(user.id), dps)
 			heal = findAndRemove(str(user.id), heal)
 			tank = findAndRemove(str(user.id), tank)
+			maybe = findAndRemove(str(user.id), maybe)
+			waitList = findAndRemove(str(user.id), waitList)
 
 		else:
 			await message.remove_reaction(payload.emoji, user)
 			return
-
 		
 		dpsOut = parseVals(dps)
 		healOut = parseVals(heal)
 		tankOut = parseVals(tank)
+		maybeOut = parseVals(maybe)
+		waitListOut = parseVals(waitList)
 
 		embed.set_field_at(3,name=f"DPS ({len(dps)})",value=dpsOut,inline=embed.fields[3].inline)
 		embed.set_field_at(4,name=f"Healers ({len(heal)})",value=healOut,inline=embed.fields[4].inline)
 		embed.set_field_at(5,name=f"Tanks ({len(tank)})",value=tankOut,inline=embed.fields[5].inline)
+		embed.set_field_at(7,name=f"Maybe ({len(maybe)})",value=maybeOut,inline=embed.fields[7].inline)
+		embed.set_field_at(8,name=f"Wait List ({len(waitList)})",value=waitListOut,inline=embed.fields[8].inline)
 
 
 
@@ -254,7 +298,8 @@ async def update_numbers(payload):
 def getVals(embed,field):
 	newValue = '\u200b'
 	currentVal = embed.fields[field].value.replace('\u200b','')
-	cleanedUpVal = re.sub(r'<(.*?)> <@(.*?)>',r'<\1> \2',currentVal)
+	#cleanedUpVal = re.sub(r'<(.*?)> <@(.*?)>',r'<\1> \2',currentVal)
+	cleanedUpVal = re.sub(r'(❓|⌛|.*?) <@(.*?)>',r'\1 \2',currentVal)
 	valList = cleanedUpVal.split("\n")
 
 	# if list is empty, return [], otherwise return the double split list.
