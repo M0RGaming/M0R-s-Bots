@@ -15,10 +15,12 @@ emotes = {
 	'stamDPS': ['<:stamsorc:755916822406103050>','<:stamplar:755916818979356712>','<:stamdk:755916821210595488>','<:stamden:755916810527834202>','<:stamcro:755916821223178260>','<:stamblade:755916818987614218>','<:stamDPS:777982060622905375>'],
 	'heal': ['<:healsorc:777960536343838760>','<:healplar:777960536159420487>','<:healdk:777960536511217664>','<:healden:777960536335450144>','<:healcro:777960536276467713>','<:healblade:777960536210014239>','<:heal:777982060433375293>'],
 	'tank': ['<:tanksorc:777960536766808165>','<:tankplar:777960536624201728>','<:tankdk:777960536632983592>','<:tankden:777960536603754546>','<:tankcro:777960536725520454>','<:tankblade:777960536620924949>','<:tank:777982060647415818>'],
-	'classes': ['<:sorc:776723019652792320>','<:templar:776723019652530186>','<:dk:776723019489083402>','<:warden:776723019422367744>','<:necro:776723019585552405>','<:nb:776723019283431456>']
+	'classes': ['<:sorc:776723019652792320>','<:templar:776723019652530186>','<:dk:776723019489083402>','<:warden:776723019422367744>','<:necro:776723019585552405>','<:nb:776723019283431456>'],
+	'roles': ['<:magDPS:777982060320391219>','<:stamDPS:777982060622905375>','<:heal:777982060433375293>','<:tank:777982060647415818>'],
+	'maybe': ['<:magMaybe:783814377173155860>','<:stamMaybe:783814376645066793>','<:healMaybe:783814377047982081>','<:tankmaybe:783814377110765578>']
 }
 
-MessageVersion = '4.0'
+MessageVersion = '5.0'
 
 
 
@@ -69,7 +71,7 @@ async def create(ctx, Title, Date, Time, Description='', limit='0,0,0'):
 
 
 
-	messageTxt = "To sign up, click your role followed by your class below the message.\n\n<:stamDPS:777982060622905375> is Stamina DPS, <:magDPS:777982060320391219> is Magicka DPS, <:heal:777982060433375293> is Healer, and <:tank:777982060647415818> is Tank.\n❓is for if you don't know if you can make it, and⌛is for if the group is filled.\n⛔is to be removed from the signups."
+	messageTxt = "To sign up, click your role followed by your class below the message.\n\n<:stamDPS:777982060622905375> is Stamina DPS, <:magDPS:777982060320391219> is Magicka DPS, <:heal:777982060433375293> is Healer, and <:tank:777982060647415818> is Tank.\nThe❔s are for if you don't know if you can make it, and⌛is for if the group is filled.\n⛔is to be removed from the signups."
 	embedData = {
 		"title": f"{Title}",
 		"description": f"{Description}",
@@ -97,17 +99,17 @@ async def create(ctx, Title, Date, Time, Description='', limit='0,0,0'):
 		message = await ctx.send(content=messageTxt,embed=embed)
 		embed.set_footer(text=f"Message Type: Raid - V{MessageVersion}\nEvent ID: {message.id}")
 		await message.edit(embed=embed)
-		await message.add_reaction('<:magDPS:777982060320391219>')
-		await message.add_reaction('<:stamDPS:777982060622905375>')
+		#await message.add_reaction('<:magDPS:777982060320391219>')
+		#await message.add_reaction('<:stamDPS:777982060622905375>')
 		'''
 		for x in emotes['magDPS']+emotes['stamDPS']:
 			await message.add_reaction(x)
 		'''
-		await message.add_reaction('<:heal:777982060433375293>')
-		await message.add_reaction('<:tank:777982060647415818>')
-		for x in emotes['classes']:
+		#await message.add_reaction('<:heal:777982060433375293>')
+		#await message.add_reaction('<:tank:777982060647415818>')
+		for x in emotes['roles'] + emotes['classes'] + emotes['maybe']:
 			await message.add_reaction(x)
-		await message.add_reaction('❓')
+		#await message.add_reaction('❓')
 		await message.add_reaction('⌛')
 		await message.add_reaction('⛔')
 		await ctx.message.delete()
@@ -329,8 +331,23 @@ async def on_raw_reaction_add(payload):
 						ind = find(str(user.id),waitList)
 						if ind == -1:
 							# if none are found
-							await message.remove_reaction(payload.emoji, user)
-							return
+							ind = find(str(user.id),maybe)
+							if ind == -1:
+								#If none are found
+								await message.remove_reaction(payload.emoji, user)
+								return
+							else:
+								#If they are in Maybe
+								if maybe[ind][0] in emotes['magDPS']:
+									maybe[ind][0] = emotes['magDPS'][classind]
+								elif maybe[ind][0] in emotes['stamDPS']:
+									maybe[ind][0] = emotes['stamDPS'][classind]
+								elif maybe[ind][0] in emotes['heal']:
+									maybe[ind][0] = emotes['heal'][classind]
+								elif maybe[ind][0] in emotes['tank']:
+									maybe[ind][0] = emotes['tank'][classind]
+								else:
+									maybe[ind][0] = emotes['classes'][classind]
 						else:
 							#If they are in the Wait List
 							if waitList[ind][0] in emotes['magDPS']:
@@ -360,7 +377,9 @@ async def on_raw_reaction_add(payload):
 				elif dps[ind][0] in emotes['stamDPS']:
 					dps[ind][0] = emotes['stamDPS'][classind]
 
-		elif str(payload.emoji) == '❓':
+		elif emote in emotes['maybe']:
+
+			maybeind = emotes['maybe'].index(emote)
 
 			ind = find(str(user.id),maybe)
 
@@ -370,9 +389,9 @@ async def on_raw_reaction_add(payload):
 			waitList = findAndRemove(str(user.id), waitList)
 
 			if ind == -1:
-				maybe.append([emote,str(user.id)])
+				maybe.append([emotes['roles'][maybeind],str(user.id)])
 			else:
-				maybe[ind][0] = emote
+				maybe[ind][0] = emotes['roles'][maybeind]
 
 		elif str(payload.emoji) == '⌛':
 
