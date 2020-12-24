@@ -2,8 +2,15 @@ import discord
 import asyncio
 from discord.ext import commands
 import os
+from discord_slash import SlashCommand
+from discord_slash import SlashContext
+from discord_slash.utils import manage_commands
+
+
+
 
 bot = commands.Bot(command_prefix='/')
+slash = SlashCommand(bot)#,auto_register=True) 
 letters = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"]
 
 token = os.environ["Token1"]
@@ -12,10 +19,14 @@ token = os.environ["Token1"]
 @bot.event
 async def on_ready():
 	print('Logged in as {0.user}'.format(bot))
+	#print(slash.commands)	
+	#await slash.register_all_commands()
 
 
 
-
+@slash.slash(name="echo")
+async def echo(ctx,msg): # Normal usage.
+    await ctx.send(send_type=4,content=msg)
 
 
 @bot.command(name='vote')
