@@ -24,7 +24,8 @@ def kill_child():
 child1 = subprocess.Popen(["python3", "ArtaeumRaidTool.py", "stdout"])
 child2 = subprocess.Popen(["python3", "SimpleVote.py", "stdout"])
 child3 = subprocess.Popen(["python3", "giveawayTool.py", "stdout"])
-child4 = subprocess.Popen(["python3", "TableTopBot/app.py", "stdout"])
+os.chdir("TableTopBot")
+child4 = subprocess.Popen(["python3", "app.py", "stdout"])
 
 global child1_pid
 global child2_pid
