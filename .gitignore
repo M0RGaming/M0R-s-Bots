@@ -2,3 +2,6 @@ SlashCommands/
 loadtokens.sh
 loadtesttokens.sh
 HowToLoadTokens.md
+
+TableTopBot/saves/
+TableTopBot/SlashCommands/
